@@ -59,14 +59,67 @@ func getArticle(s *goquery.Selection, item *feeds.Item, sucess *int, name string
 	re := regexp.MustCompile(`\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}`)
 	timeStr := re.FindString(doc.Find("#Main > .box > .header > small").Text())
 	time, _ := time.Parse("2006-01-02 15:04", timeStr)
+	// Process img tag.
+	doc.Find("#js_content img").Each(func(i int, s *goquery.Selection) {
+		src := s.AttrOr("data-src", "")
+		if src == "" {
+			return
+		}
+		startPos := strings.LastIndex(src, "http")
+		if startPos >= 0 {
+			src = src[startPos:]
+		}
+		s.SetAttr("src", src)
+		// Remove all data-* attribute
+		toRemoveAttr := []string{
+			"data-label",
+			"data-backh",
+			"data-backw",
+			"data-before-oversubscription-url",
+			"data-ratio",
+			"data-src",
+			"data-type",
+			"data-w",
+			"data-copyright",
+			"data-s",
+			"data-ad-layout",
+			"data-ad-format",
+			"data-ad-client",
+			"data-ad-slot",
+			"data-croporisrc",
+			"data-cropx1",
+			"data-cropx2",
+			"data-cropy1",
+			"data-cropy2",
+			"data-role",
+			"data-id",
+			"data-width",
+			"data-cropselx1",
+			"data-cropselx2",
+			"data-cropsely1",
+			"data-cropsely2",
+			"data-style-type",
+			"data-url",
+			"data-author-name",
+			"data-content-utf8-length",
+			"data-source-title",
+			"data-original-title",
+			"data-autoskip",
+			"data-oversubscription-url",
+		}
+		for _, attr := range toRemoveAttr {
+			s.RemoveAttr(attr)
+		}
+	})
+
 	contentHTML, _ := doc.Find("#js_content").Html()
 	*item = feeds.Item{
-		Title:   title,
-		Link:    &feeds.Link{Href: URL},
-		Author:  &feeds.Author{Name: name, Email: ""},
-		Id:      URL,
-		Created: time,
-		Content: contentHTML,
+		Title:       title,
+		Link:        &feeds.Link{Href: URL},
+		Author:      &feeds.Author{Name: name, Email: ""},
+		Id:          URL,
+		Created:     time,
+		Description: contentHTML,
 	}
 	defer wg.Done()
 }
@@ -81,9 +134,11 @@ func handleJtks(w http.ResponseWriter, r *http.Request, config *config) {
 	}
 
 	now := time.Now()
+	fullURL := fmt.Sprintf("%s%s", r.Host, r.RequestURI)
 	feed := &feeds.Feed{
 		Title:   config.Name,
-		Link:    &feeds.Link{Href: r.URL.String()},
+		Link:    &feeds.Link{Href: fullURL},
+		Id:      fullURL,
 		Created: now,
 	}
 	feed.Items = make([]*feeds.Item, 10)
