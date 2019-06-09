@@ -106,7 +106,7 @@ func handleJtks(w http.ResponseWriter, r *http.Request, config *config) {
 
 	wg.Wait()
 
-	rss, err := feed.ToRss()
+	rss, err := feed.ToAtom()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
@@ -124,6 +124,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	name := p[2]
+	if strings.HasSuffix(name, ".xml") {
+		name = strings.TrimSuffix(name, ".xml")
+	}
 	var config config
 	foundConfig := false
 	for _, config = range configs {
