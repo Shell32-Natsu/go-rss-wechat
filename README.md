@@ -10,7 +10,7 @@ This application doesn't fetch data from wechat directly but from <http://www.ji
 go run main.go [port]
 ```
 
-Than access `http://localhost:[port]/rss/[name]`
+Then access `http://localhost:[port]/rss/[name]`
 
 # Config file
 
@@ -45,4 +45,8 @@ Just use the Dockerfile to build.
 
 <https://cloud.docker.com/u/shell32/repository/docker/shell32/go-rss-wechat>
 
-Run `docker run -d -p 127.0.0.1:8081:8081 -v `pwd`:`pwd` -w `pwd` shell32/go-rss-wechat:1.0.0` in the same directory with config file.
+Run 
+```
+docker run -d -p 127.0.0.1:8081:8081 -v `pwd`:`pwd` -w `pwd` shell32/go-rss-wechat:1.0.0
+```
+in the same directory with config file.
